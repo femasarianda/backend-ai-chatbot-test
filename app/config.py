@@ -1,4 +1,4 @@
-﻿"""Konfigurasi aplikasi dari environment variable (opsional lewat file .env)."""
+"""Konfigurasi aplikasi dari environment variable (opsional lewat file .env)."""
 from __future__ import annotations
 
 import os

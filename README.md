@@ -1,4 +1,4 @@
-﻿# Backend Chatbot Layanan Digital
+# Backend Chatbot Layanan Digital
 
 Backend chatbot multi-klien berbasis **FastAPI + SQLite + LLM (Google Gemini)**. Chatbot menjawab dari knowledge base, membaca data klien dan tagihan, menyimpan riwayat percakapan per klien, serta menegakkan aturan bisnis di backend, bukan di LLM.
 
@@ -7,7 +7,7 @@ Backend chatbot multi-klien berbasis **FastAPI + SQLite + LLM (Google Gemini)**.
 ## Prinsip desain
 
 ```
-User Input â†’ Intent Detection â†’ Policy Check â†’ Knowledge Retrieval â†’ Response Generation â†’ Save Conversation
+User Input → Intent Detection → Policy Check → Knowledge Retrieval → Response Generation → Save Conversation
               (rules)            (backend/DB)   (keyword scoring)     (LLM menulis ulang)    (SQLite)
 ```
 
@@ -61,18 +61,18 @@ pytest -q
 | Method | Endpoint | Keterangan |
 |---|---|---|
 | GET | `/health` | Status server, database, dan provider LLM |
-| POST | `/chat` | Proses pesan. Tanpa `conversation_id` â†’ sesi baru |
+| POST | `/chat` | Proses pesan. Tanpa `conversation_id` → sesi baru |
 | GET | `/billing/{client_id}` | Tagihan klien (nominal, sisa, status, konsistensi) |
 | GET | `/conversations/{id}` | Riwayat sesi. Wajib header `X-Client-ID` |
-| DELETE | `/conversations/{id}` | Hapus sesi. Wajib header `X-Client-ID` â†’ 204 |
+| DELETE | `/conversations/{id}` | Hapus sesi. Wajib header `X-Client-ID` → 204 |
 | GET | `/knowledge-bases` | Daftar KB (filter `?category=`) |
 | POST | `/knowledge-bases` | Tambah KB. **Admin**: header `X-Admin-Key` |
 | POST | `/payments/confirmations` | Catat klaim pembayaran (`pending`), tidak mengubah invoice |
 | POST | `/admin/payment-confirmations/{id}/approve\|reject` | **Admin**: satu-satunya jalur yang mengubah status pembayaran |
 
-**Kode status:** `404` klien/sesi/invoice tidak ada Â· `403` sesi milik klien lain Â· `422` validasi Â· `409` konflik/invoice sudah lunas/status tidak konsisten Â· `401` kunci admin salah Â· `503` admin dinonaktifkan (`ADMIN_API_KEY` kosong). Format error: `{"error": {"code": "...", "message": "..."}}`.
+**Kode status:** `404` klien/sesi/invoice tidak ada · `403` sesi milik klien lain · `422` validasi · `409` konflik/invoice sudah lunas/status tidak konsisten · `401` kunci admin salah · `503` admin dinonaktifkan (`ADMIN_API_KEY` kosong). Format error: `{"error": {"code": "...", "message": "..."}}`.
 
-Catatan `/chat`: jika `conversation_id` dikirim tetapi belum ada, sesi dibuat dengan ID itu untuk klien tersebut. Jika sudah ada dan milik klien lain â†’ `403`.
+Catatan `/chat`: jika `conversation_id` dikirim tetapi belum ada, sesi dibuat dengan ID itu untuk klien tersebut. Jika sudah ada dan milik klien lain → `403`.
 
 ## Contoh request dan response
 
@@ -99,7 +99,7 @@ curl -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" \
 ```
 Balasan menolak aktivasi dan menyebut `Rp800.000` (diambil dari database). Untuk `CLI-002` (lunas) balasannya menyatakan permintaan diteruskan ke tim terkait.
 
-**Klaim pembayaran (TC-05/06)** â†’ `detected_intent` = `payment_claim` / `status_change_request` / `prompt_injection`. Invoice tidak berubah dan balasan meminta data verifikasi.
+**Klaim pembayaran (TC-05/06)** → `detected_intent` = `payment_claim` / `status_change_request` / `prompt_injection`. Invoice tidak berubah dan balasan meminta data verifikasi.
 
 **Riwayat sesi**
 ```bash
@@ -131,7 +131,7 @@ curl -X POST http://127.0.0.1:8000/admin/payment-confirmations/1/approve -H "X-A
 - Aktivasi hanya diteruskan bila **seluruh** invoice klien lunas. Invoice dicari dari `client_id` sesi, bukan dari klaim di teks pesan.
 - Konfirmasi pembayaran: `nominal_transfer` tidak boleh melebihi sisa tagihan (pembayaran sebagian diperbolehkan). Invoice milik klien lain diperlakukan sebagai "tidak ditemukan".
 - Knowledge base memengaruhi jawaban bot, jadi `POST /knowledge-bases` dibatasi untuk admin.
-- Tidak ada KB yang cocok â†’ jawaban fallback persis seperti di soal, tanpa karangan LLM.
+- Tidak ada KB yang cocok → jawaban fallback persis seperti di soal, tanpa karangan LLM.
 
 ## Struktur folder
 
@@ -145,7 +145,7 @@ app/
   database.py            koneksi SQLite, init, transaksi
   repositories.py        semua SQL
   schemas.py             model Pydantic (termasuk PaymentConfirmationRequest)
-  errors.py, deps.py     error domainâ†’HTTP, dependency (DB per-request, admin key)
+  errors.py, deps.py     error domain→HTTP, dependency (DB per-request, admin key)
   routers/               health, chat, billing(+payments/admin), conversations, knowledge
   services/
     billing.py           hitung sisa/total, konsistensi status
@@ -163,11 +163,11 @@ tests/                   pytest (TC-01..TC-10 dan lainnya)
 | Variabel | Default | Keterangan |
 |---|---|---|
 | `LLM_PROVIDER` | `gemini` jika key ada, selain itu `mock` | `gemini` / `mock` |
-| `GEMINI_API_KEY` | â€“ | API key Google AI Studio |
+| `GEMINI_API_KEY` | – | API key Google AI Studio |
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Model Gemini |
 | `LLM_TIMEOUT_SECONDS` / `LLM_MAX_RETRIES` | `8` / `1` | Timeout per percobaan dan jumlah retry (429/5xx/timeout) |
 | `DATABASE_PATH` | `chatbot.db` | File SQLite |
-| `ADMIN_API_KEY` | â€“ | Kosong â†’ endpoint admin nonaktif |
+| `ADMIN_API_KEY` | – | Kosong → endpoint admin nonaktif |
 
 ## Keterbatasan
 
